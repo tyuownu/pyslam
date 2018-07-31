@@ -1,3 +1,4 @@
+#encoding=utf-8
 from __future__ import print_function
 from past.builtins import xrange
 
@@ -23,6 +24,7 @@ class SparseCholeskySolver(object):
     underlying graph changes. In such cases, where the structure of the
     underlying graph changes, create a new solver instance.
     """
+    # TODO: to learn more about linear algebra
     def __init__(self, graph):
         if not hasattr(graph, '_anchor'):
             msg = "SparseCholeskySolver: graph is not anchored." + \
@@ -83,6 +85,7 @@ def main():
     g = load_graph(sys.argv[1] if len(sys.argv) > 1 else 'datasets/M3500a.g2o')
     print('graph has %d vertices, %d edges' % ( len(g.vertices), len(g.edges) ))
 
+    # 把第一个顶点固定起来.
     g.anchor_first_vertex()
 
     solver = SparseCholeskySolver(g)

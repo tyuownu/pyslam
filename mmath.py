@@ -1,3 +1,4 @@
+#encoding=utf-8
 from six.moves import reduce
 import numpy as np
 

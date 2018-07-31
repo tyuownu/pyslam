@@ -1,3 +1,4 @@
+#encoding=utf-8
 import numpy as np
 import textwrap
 from future.utils import listvalues
@@ -11,12 +12,14 @@ class GraphIOError(Exception):
     pass
 
 
+# TODO: 添加关于3D部分.
 def load_graph_g2o(filename):
     from collections import OrderedDict
     vertices = OrderedDict()
     edges = []
 
     with open(filename) as f:
+        # 返回一个可遍历的索引序列，同时列出数据和数据下标.
         for linenum, line in enumerate(f):
             d = line.split()
 
@@ -24,18 +27,25 @@ def load_graph_g2o(filename):
             f = lambda idx: float(d[idx])
 
             if d[0] == 'VERTEX_SE2':
+                # ID
                 id_ = i(1)
+                # X, Y, theta
                 xyt = np.array([ f(2), f(3), f(4) ])
                 vertices[id_] = VertexXYT(xyt)
 
             elif d[0] == 'EDGE_SE2':
+                # ID1, ID2
                 ndx_out, ndx_in = i(1), i(2)
                 v_out, v_in = vertices[ndx_out], vertices[ndx_in]
 
+                # X, Y, theta
                 xyt = np.array([ f(3), f( 4), f( 5) ])
+                ## 信息矩阵.
                 C = np.array([ [ f(6), f( 7), f( 8) ],
                                [ f(7), f( 9), f(10) ],
                                [ f(8), f(10), f(11) ] ])
+                # linalg表示python numpy里面解线性代数的库.
+                # inv表示求逆.
                 g = MultiVariateGaussian(xyt, np.linalg.inv(C))
                 edges.append( XYTConstraint(v_out, v_in, g) )
 
@@ -43,6 +53,7 @@ def load_graph_g2o(filename):
                 msg = "Unknown edge or vertex type %s in line %d" % (d[0], linenum)
                 raise GraphIOError(msg)
 
+    # listvalues可以给vertices排序，按照id.
     return Graph(listvalues(vertices), edges)
 
 

@@ -1,3 +1,4 @@
+#encoding=utf-8
 from six.moves import reduce
 
 from collections import namedtuple
@@ -49,6 +50,7 @@ class _MatrixDataIJV(object):
     __slots__ = [ '_data' ]
 
     def __init__(self, ijv_records):
+        # 后面这一大串是代表这dtype
         self._data = np.array(ijv_records, [ ('i', '<i4'), ('j', '<i4'), ('v', '<f8') ])
 
     @classmethod
@@ -58,7 +60,10 @@ class _MatrixDataIJV(object):
 
     @classmethod
     def from_dense(cls, M, i_offset=0, j_offset=0):
+        # np.indices表示的是x,y上面的位置构成的矩阵.  M.shape表示矩阵形状.
+        # 后面是把每个数都加上i_offset和j_offset.
         i, j = np.indices(M.shape).reshape(2, -1) + np.c_[[i_offset, j_offset]]
+        # ravel实现降维，把多维变成一维.
         return cls.from_ijv(i, j, M.ravel())
 
     def indices(self):
@@ -207,10 +212,13 @@ class Graph(object):
     def __init__(self, vertices, edges):
         self.vertices = vertices
         self.edges = edges
+        # 把vertices里面的数据连接起来.
         self.state = np.concatenate([ v.state0 for v in self.vertices ])
 
         # The vertices get views into the graph's state
+        # 记录了每一组数据的末端标记. [3, 6, 9, ..., 3*n]
         slice_end = np.cumsum([ len(v.state0) for v in self.vertices ]).tolist()
+        # 同上，起点. [0, 3, 6, 9, ..., 3*(n-1)]
         slice_start = [0] + slice_end[:-1]
         for v, i, j in zip(self.vertices, slice_start, slice_end):
             v.state = self.state[i: j]
@@ -229,6 +237,7 @@ class Graph(object):
     def get_stats(self):
         original_edges = [ e for e in self.edges if e is not self._anchor ]
 
+        # 5453*3 - 3500*3 = 5859
         DOF = sum(e._DOF for e in original_edges) - len(self.state)
         chi2 = sum(e.chi2() for e in original_edges)
 
