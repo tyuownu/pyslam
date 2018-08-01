@@ -51,6 +51,8 @@ class _MatrixDataIJV(object):
 
     def __init__(self, ijv_records):
         # 后面这一大串是代表这dtype
+        # '>'为big-edian, '<'为little-endian. i为'int32'
+        # 每一行表示为i, j, 以及数值, 类型为: int32, int32, float64(8字节).
         self._data = np.array(ijv_records, [ ('i', '<i4'), ('j', '<i4'), ('v', '<f8') ])
 
     @classmethod
