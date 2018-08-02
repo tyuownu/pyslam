@@ -7,7 +7,7 @@ import numpy as np
 import scipy.sparse as sp
 from sksparse.cholmod import analyze, analyze_AAt
 
-from graphio import load_graph, render_graph_html
+from graphio import load_graph, render_graph_html, save_graph
 
 
 
@@ -91,7 +91,9 @@ def main():
     solver = SparseCholeskySolver(g)
     solver.solve(maxiter=180)
 
-    render_graph_html(g, '/tmp/graph.html')
+    save_graph(g, 'datasets/MITb_after.g2o')
+
+    #render_graph_html(g, '/tmp/graph.html')
 
 if __name__ == '__main__':
     main()

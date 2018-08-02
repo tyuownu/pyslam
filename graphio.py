@@ -56,6 +56,11 @@ def load_graph_g2o(filename):
     # listvalues可以给vertices排序，按照id.
     return Graph(listvalues(vertices), edges)
 
+def save_graph_g2o(graph, filename):
+    with open(filename, 'w') as f:
+        for linenum, vertix in enumerate(graph.vertices):
+            f.write("VERTEX_SE2 " + str(linenum) + "\n")
+
 
 def load_graph_toro(filename):
     from collections import OrderedDict
@@ -175,6 +180,18 @@ def load_graph(filename):
     else:
         raise GraphIOError('Unsupported file input format "' +
             '%s". Valid extensions are ".g2o" ".toro" and ".april"' % filename)
+
+def save_graph(graph, filename):
+    if filename.endswith('.g2o'):
+        return save_graph_g2o(graph, filename)
+    elif filename.endswith('.toro'):
+        ## TODO: change this to save as toro
+        return save_graph_g2o(graph, filename)
+    elif filename.endswith('.april'):
+        return save_graph_g2o(graph, filename)
+    else:
+        raise GraphIOError('Unsupported file output format "' +
+                           '%s". Valid extensions are ".g2o" ".toro" and ".april"' % filename)
 
 
 _interactive_svg_doc = textwrap.dedent(
