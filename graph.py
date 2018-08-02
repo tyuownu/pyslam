@@ -27,6 +27,7 @@ def _hstack1d(arr_collection):
     return np.concatenate(arr_collection, axis=0)
 
 
+# 这种表示coo_distinct_matrix继承自sp.coo_matrix.
 class coo_distinct_matrix(sp.coo_matrix):
     """ A COO sparse matrix that assumes that there are no duplicate entries """
 
@@ -275,6 +276,7 @@ class Graph(object):
         # Stack edge jacobians to produce system jacobian
         j_coo = _stack_ijv([ e.jacobian(roff=r) for r, e in zip(row_offsets, edges) ])
         J = coo_distinct_matrix((j_coo.v, (j_coo.i, j_coo.j)))
+        np.savetxt("a.txt", J.toarray(), fmt="%.6e")
 
         # Stack edge weights to produce system weights
         w_coo = _stack_ijv([ e.uncertainty(r, r) for r, e in zip(row_offsets, edges) ])
