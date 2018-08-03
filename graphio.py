@@ -59,7 +59,23 @@ def load_graph_g2o(filename):
 def save_graph_g2o(graph, filename):
     with open(filename, 'w') as f:
         for linenum, vertix in enumerate(graph.vertices):
-            f.write("VERTEX_SE2 " + str(linenum) + "\n")
+            line = "VERTEX_SE2 " + str(linenum)
+            for i in vertix.state:
+                line = line + " " + str(i)
+            f.write(line + "\n")
+
+        for linenum, edge in enumerate(graph.edges):
+            if linenum == len(graph.edges) - 1:
+                break
+            line = "EDGE_SE2 "
+            for vertix in edge._vx:
+                line = line + " " + str(vertix._graph_state_ndx/3)
+            for mu in edge._gaussian.mu:
+                line = line + " " + str(mu)
+            v = np.linalg.inv(edge._gaussian.P)
+            line = line + " " + str(v[0][0]) + " " + str(v[0][1]) + " " + str(v[0][2])
+            line = line + " " + str(v[1][1]) + " " + str(v[1][2]) + " " + str(v[2][2])
+            f.write(line + "\n")
 
 
 def load_graph_toro(filename):
