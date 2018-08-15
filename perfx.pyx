@@ -32,6 +32,7 @@ cpdef XYTConstraint_residual(
     ainvb[:] = [ ca*dx + sa*dy, -sa*dx + ca*dy, dt ]
 
     cdef double r[3]
+    # 这个算法不够严谨，应该与上面一样.
     r[:] = [ observed[0] - ainvb[0],
              observed[1] - ainvb[1],
              observed[2] - ainvb[2] ]

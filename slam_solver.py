@@ -63,6 +63,7 @@ class SparseCholeskySolver(object):
 
 
     def solve(self, verbose=False, tol=1e-6, maxiter=1000, callback=None):
+        # 得到当前图的状态.
         current_stats = self._graph.get_stats()
 
         for iter_ in xrange(maxiter):
@@ -85,7 +86,7 @@ def main():
     g = load_graph(sys.argv[1] if len(sys.argv) > 1 else 'datasets/M3500a.g2o')
     print('graph has %d vertices, %d edges' % ( len(g.vertices), len(g.edges) ))
 
-    # 把第一个顶点固定起来.
+    # 把第一个顶点固定起来,会给edges添加一个边.
     g.anchor_first_vertex()
 
     solver = SparseCholeskySolver(g)

@@ -48,6 +48,7 @@ class _MatrixDataIJV(object):
     """ Encapsulation for matrix (i,j,v) data stored in a contiguous
     record array.
     """
+    # __slots__限制了类的访问属性，只能有_data访问.
     __slots__ = [ '_data' ]
 
     def __init__(self, ijv_records):
@@ -56,6 +57,7 @@ class _MatrixDataIJV(object):
         # 每一行表示为i, j, 以及数值, 类型为: int32, int32, float64(8字节).
         self._data = np.array(ijv_records, [ ('i', '<i4'), ('j', '<i4'), ('v', '<f8') ])
 
+    # 注意classmethod和staticmethod的区别等.
     @classmethod
     def from_ijv(cls, i, j, v):
         records = [ (ii, jj, vv) for ii, jj, vv in zip(i, j, v) ]
@@ -115,7 +117,9 @@ class XYTConstraint(object):
 
     def __init__(self, v_out, v_in, gaussian):
         self._vx = [ v_out, v_in ]
+        # _gaussian为原始的信息矩阵的逆.
         self._gaussian = gaussian
+        # 构建信息矩阵的稀疏矩阵?
         self._Sigma_ijv = _MatrixDataIJV.from_dense(np.linalg.inv(gaussian.P))
         self._jacobian_ijv_cache = None
 
@@ -129,7 +133,9 @@ class XYTConstraint(object):
 
     def chi2(self):
         z = self.residual()
-        return reduce(np.dot, [ z.T, self._gaussian.P, z ])
+        print z
+        return reduce(np.dot, [ z.T, np.eye(3,3), z ])
+        # return reduce(np.dot, [ z.T, self._gaussian.P, z ])
 
     def uncertainty(self, roff=0, coff=0):
         return self._Sigma_ijv.offset(roff, coff)
@@ -238,9 +244,10 @@ class Graph(object):
             self.edges.append(self._anchor)
 
     def get_stats(self):
+        # 选定所有非锚点的边.
         original_edges = [ e for e in self.edges if e is not self._anchor ]
 
-        # 5453*3 - 3500*3 = 5859
+        # 5453*3 - 3500*3 = 5859, 这个DOF到底怎么理解?
         DOF = sum(e._DOF for e in original_edges) - len(self.state)
         chi2 = sum(e.chi2() for e in original_edges)
 
