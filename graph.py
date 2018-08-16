@@ -22,6 +22,7 @@ def _hstack2d(arr_collection):
     return np.concatenate(arr_collection, axis=1)
 
 
+# hstack: 水平(按列顺序)把数组给堆叠起来.vstack: 垂直...
 def _hstack1d(arr_collection):
     """ faster than `np.hstack` because it avoids calling `np.atleast1d` """
     return np.concatenate(arr_collection, axis=0)
@@ -133,7 +134,7 @@ class XYTConstraint(object):
 
     def chi2(self):
         z = self.residual()
-        print z
+        # print z
         return reduce(np.dot, [ z.T, np.eye(3,3), z ])
         # return reduce(np.dot, [ z.T, self._gaussian.P, z ])
 
@@ -152,15 +153,20 @@ class XYTConstraint(object):
         computed as a sub-matrix of the graph Jacobian.
         """
         Ja, Jb = XYTConstraint_jacobians(self._vx[0].state, self._vx[1].state)
+        # print Ja, Jb
 
         if self._jacobian_ijv_cache is None:
             ndx0 = self._vx[0]._graph_state_ndx
             ndx1 = self._vx[1]._graph_state_ndx
+            # 构建一个更大的稀疏矩阵.
             self._jacobian_ijv_cache = _stack_ijv([
                             _MatrixDataIJV.from_dense(np.array(Ja).reshape(3,3), roff, ndx0),
                             _MatrixDataIJV.from_dense(np.array(Jb).reshape(3,3), roff, ndx1)
                         ])
 
+        print self._jacobian_ijv_cache.v
+        print Ja
+        print Jb
         self._jacobian_ijv_cache.v = Ja + Jb
         return self._jacobian_ijv_cache
 
