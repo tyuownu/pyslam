@@ -10,6 +10,7 @@ from mmath import xyt_inv_mult, xyt_mult, MultiVariateGaussian
 import pyximport; pyximport.install()
 from perfx import XYTConstraint_residual, XYTConstraint_jacobians
 from perfx import normalize_angle_range
+import math
 
 
 
@@ -152,22 +153,35 @@ class XYTConstraint(object):
         It is useful to specify `roff` when this Jacobian matrix is
         computed as a sub-matrix of the graph Jacobian.
         """
-        Ja, Jb = XYTConstraint_jacobians(self._vx[0].state, self._vx[1].state)
-        # print Ja, Jb
+        Ja_, Jb_ = XYTConstraint_jacobians(self._vx[0].state, self._vx[1].state)
+        #cdef double mean_matrix_inv[9];
+        # mean_matrix[:] = [cos(mean[2]), -sin(mean[2]), mean[0],
+        #                   sin(mean[2]),  cos(mean[2]), mean[1],
+        #                   0,             0,            1.]
+        mean = self._gaussian.mu
+        mean_matrix_inv = np.array([(math.cos(mean[2])), (math.sin(mean[2])), 0,
+                                    (-math.sin(mean[2])), (math.cos(mean[2])), 0,
+                                    0                  , 0                 , 1])
+        Ja = np.dot(mean_matrix_inv.reshape(3,3) , np.array(Ja_).reshape(3,3))
+        Jb = np.dot(mean_matrix_inv.reshape(3,3) , np.array(Jb_).reshape(3,3))
+        #print Ja, Jb
+        #print Ja_
+        #print Jb_
+        #print mean_matrix_inv
+        #print Ja
 
         if self._jacobian_ijv_cache is None:
             ndx0 = self._vx[0]._graph_state_ndx
             ndx1 = self._vx[1]._graph_state_ndx
             # 构建一个更大的稀疏矩阵.
             self._jacobian_ijv_cache = _stack_ijv([
-                            _MatrixDataIJV.from_dense(np.array(Ja).reshape(3,3), roff, ndx0),
-                            _MatrixDataIJV.from_dense(np.array(Jb).reshape(3,3), roff, ndx1)
+                            _MatrixDataIJV.from_dense(Ja, roff, ndx0),
+                            _MatrixDataIJV.from_dense(Jb, roff, ndx1)
                         ])
 
-        print self._jacobian_ijv_cache.v
-        print Ja
-        print Jb
-        self._jacobian_ijv_cache.v = Ja + Jb
+        # print np.array(self._jacobian_ijv_cache.v)
+        # print np.array(Ja+Jb)
+        self._jacobian_ijv_cache.v = list(Ja.reshape(1,-1)[0]) + list(Jb.reshape(1,-1)[0])
         return self._jacobian_ijv_cache
 
 
